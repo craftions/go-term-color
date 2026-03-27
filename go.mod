@@ -1,4 +1,5 @@
-module go-term-color
+module github.com/craftions/go-term-color
+
 // go mode init my-proyect
 go 1.26.1
 
