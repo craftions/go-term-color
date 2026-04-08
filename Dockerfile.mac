@@ -1,0 +1,17 @@
+# Dockerfile.mac
+# Nota: No hay contenedores nativos de macOS en Docker (requiere OSX-KVM).
+# Utilizamos un entorno POSIX amplio (basado en Debian) para asegurar que
+# el comportamiento Unix/macOS de la librería (como `console_posix.go`) funcione correctamente.
+FROM golang:1.21
+
+WORKDIR /app
+
+# Copiar archivos del modulo
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copiar el código fuente
+COPY . .
+
+# Ejecutar pruebas y ejemplo POSIX general (similar a macOS)
+CMD go test -v ./... && cd example && go run main.go

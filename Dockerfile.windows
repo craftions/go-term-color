@@ -1,0 +1,14 @@
+# Dockerfile.windows
+FROM golang:1.21-windowsservercore-1809
+
+WORKDIR /app
+
+# Copiar archivos del modulo
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copiar el código fuente
+COPY . .
+
+# Ejecutar pruebas y probar ejemplo
+CMD go test -v ./... && cd example && go run main.go
