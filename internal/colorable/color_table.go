@@ -1,139 +1,12 @@
-// Converts ANSI color codes to the 16 colors that the Windows console understands.
+//go:build windows && !appengine
+// +build windows,!appengine
+
+// sistema de conversión de colores ANSI 256 a colores de la consola de Windows
 package colorable
 
 import (
-	"strconv"
-	"strings"
-	"sync"
-	"unsafe"
+	"math"
 )
-
-var n256init sync.Once
-
-// Interprets ANSI parameters and changes the console color.
-func (w *writer) handleColor(params string) error {
-
-	n256init.Do(n256setup)
-
-	var csbi consoleScreenBufferInfo
-
-	procGetConsoleScreenBufferInfo.Call(
-		uintptr(w.handle),
-		uintptr(unsafe.Pointer(&csbi)),
-	)
-
-	attr := csbi.attributes
-
-	if params == "" {
-
-		procSetConsoleTextAttribute.Call(
-			uintptr(w.handle),
-			uintptr(w.oldattr),
-		)
-
-		return nil
-	}
-
-	tokens := strings.Split(params, ";")
-
-	for i := 0; i < len(tokens); i++ {
-
-		n, _ := strconv.Atoi(tokens[i])
-
-		switch {
-
-		// reset
-		case n == 0:
-			attr = w.oldattr
-
-		// bold / intensity
-		case n == 1:
-			attr |= foregroundIntensity
-
-		// underline
-		case n == 4:
-			attr |= commonLvbUnderscore
-
-		// inverse
-		case n == 7:
-			attr = ((attr & foregroundMask) << 4) |
-				((attr & backgroundMask) >> 4)
-
-		// foreground 30–37
-		case 30 <= n && n <= 37:
-
-			attr &^= foregroundMask
-
-			c := color16[n-30]
-
-			attr |= c.foregroundAttr()
-
-		// background 40–47
-		case 40 <= n && n <= 47:
-
-			attr &^= backgroundMask
-
-			c := color16[n-40]
-
-			attr |= c.backgroundAttr()
-
-		// bright foreground 90–97
-		case 90 <= n && n <= 97:
-
-			attr &^= foregroundMask
-
-			c := color16[n-90+8]
-
-			attr |= c.foregroundAttr()
-
-		// bright background 100–107
-		case 100 <= n && n <= 107:
-
-			attr &^= backgroundMask
-
-			c := color16[n-100+8]
-
-			attr |= c.backgroundAttr()
-
-		// 256 colors foreground
-		case n == 38:
-
-			if i+2 < len(tokens) && tokens[i+1] == "5" {
-
-				idx, _ := strconv.Atoi(tokens[i+2])
-
-				if idx >= 0 && idx < 256 {
-					attr &^= foregroundMask
-					attr |= n256foreAttr[idx]
-				}
-
-				i += 2
-			}
-
-		// 256 colors background
-		case n == 48:
-
-			if i+2 < len(tokens) && tokens[i+1] == "5" {
-
-				idx, _ := strconv.Atoi(tokens[i+2])
-
-				if idx >= 0 && idx < 256 {
-					attr &^= backgroundMask
-					attr |= n256backAttr[idx]
-				}
-
-				i += 2
-			}
-		}
-	}
-
-	procSetConsoleTextAttribute.Call(
-		uintptr(w.handle),
-		uintptr(attr),
-	)
-
-	return nil
-}
 
 var color256 = map[int]int{
 	0:   0x000000,
@@ -394,6 +267,46 @@ var color256 = map[int]int{
 	255: 0xeeeeee,
 }
 
+type consoleColor struct {
+	rgb       int
+	red       bool
+	green     bool
+	blue      bool
+	intensity bool
+}
+
+func (c consoleColor) foregroundAttr() (attr word) {
+	if c.red {
+		attr |= foregroundRed
+	}
+	if c.green {
+		attr |= foregroundGreen
+	}
+	if c.blue {
+		attr |= foregroundBlue
+	}
+	if c.intensity {
+		attr |= foregroundIntensity
+	}
+	return
+}
+
+func (c consoleColor) backgroundAttr() (attr word) {
+	if c.red {
+		attr |= backgroundRed
+	}
+	if c.green {
+		attr |= backgroundGreen
+	}
+	if c.blue {
+		attr |= backgroundBlue
+	}
+	if c.intensity {
+		attr |= backgroundIntensity
+	}
+	return
+}
+
 var color16 = []consoleColor{
 	{0x000000, false, false, false, false},
 	{0x000080, false, false, true, false},
@@ -413,21 +326,23 @@ var color16 = []consoleColor{
 	{0xffffff, true, true, true, true},
 }
 
-type consoleColor struct {
-	rgb       int
-	red       bool
-	green     bool
-	blue      bool
-	intensity bool
-}
-
 type hsv struct {
 	h, s, v float32
 }
 
-type hsvTable []hsv
+func (a hsv) dist(b hsv) float32 {
+	dh := a.h - b.h
+	switch {
+	case dh > 0.5:
+		dh = 1 - dh
+	case dh < -0.5:
+		dh = -1 - dh
+	}
+	ds := a.s - b.s
+	dv := a.v - b.v
+	return float32(math.Sqrt(float64(dh*dh + ds*ds + dv*dv)))
+}
 
-// They are used to compare colors and find the most similar one.
 func toHSV(rgb int) hsv {
 	r, g, b := float32((rgb&0xFF0000)>>16)/256.0,
 		float32((rgb&0x00FF00)>>8)/256.0,
@@ -454,6 +369,8 @@ func toHSV(rgb int) hsv {
 	v := max
 	return hsv{h: h, s: s, v: v}
 }
+
+type hsvTable []hsv
 
 func toHSVTable(rgbTable []consoleColor) hsvTable {
 	t := make(hsvTable, len(rgbTable))
@@ -499,7 +416,6 @@ func minmax3f(a, b, c float32) (min, max float32) {
 var n256foreAttr []word
 var n256backAttr []word
 
-// Prepares conversion from ANSI 256 colors to Windows colors.
 func n256setup() {
 	n256foreAttr = make([]word, 256)
 	n256backAttr = make([]word, 256)

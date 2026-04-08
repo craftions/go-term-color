@@ -5,16 +5,16 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mattn/go-isatty"
+	"github.com/craftions/go-term-check/terminal"
 )
 
-// NoColor determina si se debe omitir el uso de colores. 
+// NoColor determina si se debe omitir el uso de colores.
 // Será verdadero si la salida se redirige a un archivo, o si se especificaron
 // variables de entorno como NO_COLOR.
 var NoColor bool
 
 func init() {
-	isTerm := isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stdout.Fd())
+	isTerm := terminal.IsTerminal(os.Stdout.Fd()) || terminal.IsCygwinTerminal(os.Stdout.Fd())
 	NoColor = os.Getenv("NO_COLOR") != "" || os.Getenv("TERM") == "dumb" || !isTerm
 }
 
