@@ -14,20 +14,28 @@ import (
 
 // EnableColorsStdout enable colors if possible.
 func EnableColorsStdout(enabled *bool) func() {
+	handle := os.Stdout.Fd()
 	var mode uint32
-	h := os.Stdout.Fd()
-	if r, _, _ := procGetConsoleMode.Call(h, uintptr(unsafe.Pointer(&mode))); r != 0 {
-		if r, _, _ = procSetConsoleMode.Call(h, uintptr(mode|cENABLE_VIRTUAL_TERMINAL_PROCESSING)); r != 0 {
-			if enabled != nil {
-				*enabled = true
-			}
-			return func() {
-				procSetConsoleMode.Call(h, uintptr(mode))
-			}
+
+	setEnabled := func() {
+		if enabled != nil {
+			*enabled = true
 		}
 	}
-	if enabled != nil {
-		*enabled = true
+
+	if r, _, _ := procGetConsoleMode.Call(handle, uintptr(unsafe.Pointer(&mode))); r == 0 {
+		setEnabled()
+		return func() {}
 	}
+
+	newMode := mode | cENABLE_VIRTUAL_TERMINAL_PROCESSING
+	if r, _, _ := procSetConsoleMode.Call(handle, uintptr(newMode)); r != 0 {
+		setEnabled()
+		return func() {
+			procSetConsoleMode.Call(handle, uintptr(mode))
+		}
+	}
+
+	setEnabled()
 	return func() {}
 }

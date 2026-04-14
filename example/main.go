@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 
-	"github.com/craftions/go-term-check/terminal"
 	color "github.com/craftions/go-term-color"
 )
 
@@ -11,7 +10,6 @@ func main() {
 	fmt.Println("=====================================")
 	fmt.Println("Ejemplo de uso de go-term-color:")
 	fmt.Println("=====================================")
-	fmt.Println(terminal.Hello())
 	color.Red("Este texto es rojo")
 	color.Green("Este texto es verde")
 	color.Blue("Este texto es azul")

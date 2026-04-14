@@ -350,14 +350,15 @@ func toHSV(rgb int) hsv {
 	min, max := minmax3f(r, g, b)
 	h := max - min
 	if h > 0 {
-		if max == r {
+		switch max {
+		case r:
 			h = (g - b) / h
 			if h < 0 {
 				h += 6
 			}
-		} else if max == g {
+		case g:
 			h = 2 + (b-r)/h
-		} else {
+		default:
 			h = 4 + (r-g)/h
 		}
 	}
@@ -380,6 +381,7 @@ func toHSVTable(rgbTable []consoleColor) hsvTable {
 	return t
 }
 
+// Busca el color más cercano comparando distancias y se queda con el mejor
 func (t hsvTable) find(rgb int) consoleColor {
 	hsv := toHSV(rgb)
 	n := 7
@@ -394,23 +396,24 @@ func (t hsvTable) find(rgb int) consoleColor {
 }
 
 func minmax3f(a, b, c float32) (min, max float32) {
-	if a < b {
-		if b < c {
-			return a, c
-		} else if a < c {
-			return a, b
-		} else {
-			return c, b
-		}
-	} else {
-		if a < c {
-			return b, c
-		} else if b < c {
-			return b, a
-		} else {
-			return c, a
-		}
+	min = a
+	max = a
+
+	if b < min {
+		min = b
 	}
+	if b > max {
+		max = b
+	}
+
+	if c < min {
+		min = c
+	}
+	if c > max {
+		max = c
+	}
+
+	return
 }
 
 var n256foreAttr []word

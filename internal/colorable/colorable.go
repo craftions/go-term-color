@@ -40,17 +40,29 @@ func NewColorable(file *os.File) io.Writer {
 		panic("nil passed instead of *os.File to NewColorable()")
 	}
 
-	if terminal.IsTerminal(file.Fd()) {
-		var mode uint32
-		if r, _, _ := procGetConsoleMode.Call(file.Fd(), uintptr(unsafe.Pointer(&mode))); r != 0 && mode&cENABLE_VIRTUAL_TERMINAL_PROCESSING != 0 {
-			return file
-		}
-		var csbi consoleScreenBufferInfo
-		handle := syscall.Handle(file.Fd())
-		procGetConsoleScreenBufferInfo.Call(uintptr(handle), uintptr(unsafe.Pointer(&csbi)))
-		return &writer{out: file, handle: handle, oldattr: csbi.attributes, oldpos: coord{0, 0}}
+	fd := file.Fd()
+	if !terminal.IsTerminal(fd) {
+		return file
 	}
-	return file
+
+	// Verificar soporte de virtual terminal processing
+	var mode uint32
+	ret, _, _ := procGetConsoleMode.Call(fd, uintptr(unsafe.Pointer(&mode)))
+	if ret != 0 && mode&cENABLE_VIRTUAL_TERMINAL_PROCESSING != 0 {
+		return file
+	}
+
+	// Si no hay soporte, usar el writer personalizado
+	var csbi consoleScreenBufferInfo
+	handle := syscall.Handle(fd)
+	procGetConsoleScreenBufferInfo.Call(uintptr(handle), uintptr(unsafe.Pointer(&csbi)))
+
+	return &writer{
+		out:     file,
+		handle:  handle,
+		oldattr: csbi.attributes,
+		oldpos:  coord{0, 0},
+	}
 }
 
 // NewColorableStdout returns new instance of writer which handles escape sequence for stdout.
