@@ -3,6 +3,7 @@ package color
 import (
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
 
 	"github.com/craftions/go-term-check/terminal"
@@ -13,9 +14,30 @@ import (
 // variables de entorno como NO_COLOR.
 var NoColor bool
 
+// CheckIfTerminal abstrae y envuelve la comprobación completa inter-OS,
+// reemplazando las dependencias externas convencionales de terminales.
+func CheckIfTerminal(fd uintptr) bool {
+	// 1. Verificación base estándar cruzada
+	if terminal.IsTerminal(fd) {
+		return true
+	}
+	// 2. Extensión vital para tolerar emulaciones sobre Windows (PTY/MSYS - Git Bash / Mintty)
+	if runtime.GOOS == "windows" {
+		if terminal.IsCygwinTerminal(fd) {
+			return true
+		}
+	}
+	return false
+}
+
 func init() {
-	isTerm := terminal.IsTerminal(os.Stdout.Fd()) || terminal.IsCygwinTerminal(os.Stdout.Fd())
-	NoColor = os.Getenv("NO_COLOR") != "" || os.Getenv("TERM") == "dumb" || !isTerm
+	if os.Getenv("NO_COLOR") != "" || os.Getenv("TERM") == "dumb" {
+		NoColor = true
+		return
+	}
+
+	// Usando nuestro propio check integrado para activar/desactivar colores ANSI automáticamente
+	NoColor = !CheckIfTerminal(os.Stdout.Fd())
 }
 
 // Attribute representa un atributo visual de escape ANSI.
