@@ -1,16 +1,17 @@
 # go-term-color
 
-Go package for colouring terminals in CLI applications. Es una biblioteca ligera y sencilla de usar que detecta automáticamente si el terminal y el sistema operativo soportan la inyección de colores ANSI, activándolos o desactivándolos en consecuencia, e incluso soporta la variable de entorno `NO_COLOR`.
+Go package for colouring terminals in CLI applications. It is a lightweight and easy-to-use library that automatically detects whether the terminal and operating system support ANSI color injection, enabling or disabling them accordingly. It also supports the `NO_COLOR` environment variable.
 
-## Estructura del Proyecto
+## Project Structure
 
-El proyecto se estructura de la siguiente manera:
+The project is structured as follows:
 
-*   **`color.go`**: Contiene la lógica principal de la librería. Define los tipos genéricos como `Attribute` y `Color`, así como constantes de colores básicos ANSI y métodos de formato rápido como `Red`, `Green`, `Blue`, `CyanString`, etc. Las detecciones base de TTY se realizan aquí y gestionan globalmente `NoColor`.
-*   **`console_posix.go` y `console_windows.go`**: Archivos de compatibilidad específicos a nivel de capa del sistema operativo para verificar e inicializar configuraciones propias del terminal o de las consolas de Windows nativas (habilitando de virtual terminal processing).
-*   **`example/`**: Contiene un pequeño sub-módulo para testear y visualizar rápidamente cómo se muestran los colores en la terminal al ejecutarse de manera simple.
+*   **`color.go`**: Contains the main logic of the library. It defines generic types such as `Attribute` and `Color`, as well as basic ANSI color constants and quick formatting methods like `Red`, `Green`, `Blue`, `CyanString`, etc. The base TTY detections are performed here, globally managing `NoColor`.
+*   **`console_posix.go` and `console_windows.go`**: Specific OS-layer compatibility files to verify and initialize native terminal settings or Windows consoles (enabling virtual terminal processing).
+*   **`internal/colorable/`**: Contains the internal implementation to process and render ANSI escape sequences natively on Windows environments that do not support virtual terminal processing by default, interpreting the sequences and translating them into Windows console API calls.
+*   **`example/`**: Contains a small sub-module to quickly test and visualize how colors are displayed in the terminal when executed.
 
-## Uso Básico
+## Basic Usage
 
 ```go
 package main
@@ -21,27 +22,27 @@ import (
 )
 
 func main() {
-    // Uso rápido y directo
-    color.Red("Este mensaje sale en color rojo predeterminado")
-    color.Green("Verde predeterminado sobre la misma línea")
+    // Quick and direct usage
+    color.Red("This message prints in default red color")
+    color.Green("Default green on the same line")
 
-    // Personalización y construcción de combinaciones complejas con atributos múltiples
+    // Customization and building complex combinations with multiple attributes
     c := color.New(color.FgCyan, color.Bold, color.Underline)
-    c.Println("Texto Cyan, en negrita y subrayado")
+    c.Println("Cyan text, bold and underlined")
 
-    // Manipulando para imprimir posteriormente vía strings (útil en logs en caso de encadenar)
-    str := color.YellowString("Cadena string explícitamente formateada como amarilla")
-    fmt.Printf("Puedo interpolar esto: %s\n", str)
+    // Manipulating to print later via strings (useful for logging if chaining)
+    str := color.YellowString("String explicitly formatted as yellow")
+    fmt.Printf("I can interpolate this: %s\n", str)
 }
 ```
 
-## Ambientes Docker por Sistema Operativo
+## Docker Environments per Operating System
 
-A fines de asegurar y mejorar el funcionamiento, prueba y desarrollo de la librería transversalmente de manera agnóstica; se incluyen Dockerfiles para poder compilar y testear la librería en entornos asilados específicos para el respectivo sistema operativo.
+To ensure and improve the functionality, testing, and cross-platform development of the library agnostically, Dockerfiles are included to compile and test the library in isolated environments specific to the respective operating system.
 
 ### Linux
 
-Utiliza la imagen oficial de sistema ligera Alpine Linux para probar integraciones Unix POSIX.
+Uses the official lightweight Alpine Linux image to test Unix POSIX integrations.
 ```bash
 docker build -t go-term-color-linux -f Dockerfile.linux .
 docker run --rm go-term-color-linux
@@ -49,7 +50,7 @@ docker run --rm go-term-color-linux
 
 ### Windows
 
-Utiliza una imagen de Windows Server Core estricta. *Nota: Necesitas y es estrictamente mandatorio tener Docker Desktop local corriendo en su modo **Windows Containers**.*
+Uses a strict Windows Server Core image. *Note: You strictly need to have Docker Desktop running locally in its **Windows Containers** mode.*
 ```powershell
 docker build -t go-term-color-win -f Dockerfile.windows .
 docker run --rm go-term-color-win
@@ -57,8 +58,22 @@ docker run --rm go-term-color-win
 
 ### macOS (POSIX)
 
-Docker no soporta virtualizaciones nativas del _kernel_ de OS X/macOS empaquetadas en un único contenedor. Sin embargo, para probar el _set_ de reglas POSIX de la librería que usa indirectamente macOS (a saber `console_posix.go`), se provee una imagen oficial enriquecida de Debian que refleja la completitud del ecosistema posix equivalente.
+Docker does not support native virtualization of the OS X/macOS _kernel_ packaged in a single container. However, to test the POSIX rule set of the library indirectly used by macOS (namely `console_posix.go`), an enriched official Debian image is provided that reflects the completeness of the equivalent posix ecosystem.
 ```bash
 docker build -t go-term-color-mac -f Dockerfile.mac .
 docker run --rm go-term-color-mac
+```
+
+## Testing and Coverage
+
+This project emphasizes code quality and reliability through rigorous unit testing, achieving over **80% global code coverage**.
+
+- **Table-Driven Tests:** Tests are implemented using the table-driven pattern to ensure multiple scenarios and attributes are evaluated systematically.
+- **Cross-Platform Mocks:** The testing suite leverages invalid file descriptors and environment variable manipulation (`TERM=dumb`, `NO_COLOR=1`) to emulate different terminal states.
+- **Windows Console Evaluation:** The `colorable` tests simulate both native Windows consoles (using `CONOUT$`) and non-interactive pipes to guarantee that the `writer` correctly initializes or passes through based on the underlying output stream.
+
+To run tests and check coverage:
+```bash
+make test
+make coverage
 ```

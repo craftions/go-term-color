@@ -1,10 +1,10 @@
 //go:build windows && !appengine
 // +build windows,!appengine
 
-// Este archivo activa el modo de colores moderno en la consola de Windows cuando es posible.
-// Las versiones recientes de Windows (10 y 11) tienen una capacidad llamada "VT mode"
-// que permite que la consola entienda directamente los códigos de color ANSI (como \033[32m)
-// Sin embargo, esta capacidad viene desactivada por defecto por compatibilidad con programas antiguos
+// This file enables modern color mode in the Windows console when possible.
+// Recent versions of Windows (10 and 11) have a capability called "VT mode"
+// which allows the console to directly understand ANSI color codes (like \033[32m).
+// However, this capability comes disabled by default for compatibility with older programs.
 package colorable
 
 import (

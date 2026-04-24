@@ -1,8 +1,8 @@
 //go:build windows && !appengine
 // +build windows,!appengine
 
-// Este archivo es el "traductor" que lee secuencias ANSI y las convierte en movimientos de cursor,
-// borrados de pantalla y cambios de color que Windows entiende.
+// This file is the "translator" that reads ANSI sequences and converts them into cursor movements,
+// screen clears, and color changes that Windows understands.
 package colorable
 
 import (

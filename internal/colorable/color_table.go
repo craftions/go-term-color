@@ -1,7 +1,7 @@
 //go:build windows && !appengine
 // +build windows,!appengine
 
-// sistema de conversión de colores ANSI 256 a colores de la consola de Windows
+// ANSI 256 color to Windows console color conversion system
 package colorable
 
 import (
@@ -381,7 +381,7 @@ func toHSVTable(rgbTable []consoleColor) hsvTable {
 	return t
 }
 
-// Busca el color más cercano comparando distancias y se queda con el mejor
+// Finds the closest color by comparing distances and keeps the best one
 func (t hsvTable) find(rgb int) consoleColor {
 	hsv := toHSV(rgb)
 	n := 7

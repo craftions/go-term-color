@@ -4,6 +4,6 @@
 package color
 
 func init() {
-	// Los sistemas POSIX (Linux, macOS, Solaris) operan de forma nativa con secuencias ANSI de escape
-	// por lo tanto, no se requiere configuración adicional a nivel de kernel/consola de SO aquí.
+	// POSIX systems (Linux, macOS, Solaris) natively operate with ANSI escape sequences
+	// therefore, no additional OS kernel/console configuration is required here.
 }

@@ -1,14 +1,14 @@
 //go:build windows && !appengine
 // +build windows,!appengine
 
-// Hace que los códigos de color ANSI funcionen en CUALQUIER versión de Windows
-// El programa escribe texto con códigos de color
-// NewColorable() analiza la terminal
-// ¿Es terminal moderna? (Windows 10+)
-// Sí → Usa la terminal directamente (rápido)
-// No → Envuelve todo en un "traductor"
-// El traductor convierte códigos ANSI a comandos de Windows
-// Los colores aparecen correctamente
+// Makes ANSI color codes work on ANY version of Windows.
+// The program writes text with color codes
+// NewColorable() analyzes the terminal:
+// Is it a modern terminal? (Windows 10+)
+// Yes -> Uses the terminal directly (fast)
+// No -> Wraps everything in a "translator"
+// The translator converts ANSI codes to Windows commands
+// Colors appear correctly
 package colorable
 
 import (
@@ -45,14 +45,14 @@ func NewColorable(file *os.File) io.Writer {
 		return file
 	}
 
-	// Verificar soporte de virtual terminal processing
+	// Verify virtual terminal processing support
 	var mode uint32
 	ret, _, _ := procGetConsoleMode.Call(fd, uintptr(unsafe.Pointer(&mode)))
 	if ret != 0 && mode&cENABLE_VIRTUAL_TERMINAL_PROCESSING != 0 {
 		return file
 	}
 
-	// Si no hay soporte, usar el writer personalizado
+	// If there's no support, use the custom writer
 	var csbi consoleScreenBufferInfo
 	handle := syscall.Handle(fd)
 	procGetConsoleScreenBufferInfo.Call(uintptr(handle), uintptr(unsafe.Pointer(&csbi)))

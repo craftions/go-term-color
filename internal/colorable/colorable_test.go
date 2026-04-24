@@ -81,18 +81,30 @@ func TestNonColorableBadESC(t *testing.T) {
 
 func TestColorable(t *testing.T) {
 	if runtime.GOOS == "windows" {
-		t.Skipf("skip this test on windows")
-	}
-	_, ok := NewColorableStdout().(*os.File)
-	if !ok {
-		t.Fatalf("should os.Stdout on UNIX")
-	}
-	_, ok = NewColorableStderr().(*os.File)
-	if !ok {
-		t.Fatalf("should os.Stdout on UNIX")
-	}
-	_, ok = NewColorable(os.Stdout).(*os.File)
-	if !ok {
-		t.Fatalf("should os.Stdout on UNIX")
+		c := NewColorableStdout()
+		if c == nil {
+			t.Fatalf("should not be nil")
+		}
+		c2 := NewColorableStderr()
+		if c2 == nil {
+			t.Fatalf("should not be nil")
+		}
+		c3 := NewColorable(os.Stdout)
+		if c3 == nil {
+			t.Fatalf("should not be nil")
+		}
+	} else {
+		_, ok := NewColorableStdout().(*os.File)
+		if !ok {
+			t.Fatalf("should os.Stdout on UNIX")
+		}
+		_, ok = NewColorableStderr().(*os.File)
+		if !ok {
+			t.Fatalf("should os.Stdout on UNIX")
+		}
+		_, ok = NewColorable(os.Stdout).(*os.File)
+		if !ok {
+			t.Fatalf("should os.Stdout on UNIX")
+		}
 	}
 }
