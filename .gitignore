@@ -1,6 +1,8 @@
 # Test coverage outputs
 *.out
 *.html
+coverage.out
+coverage/
 
 # IDEs and Editors
 .vscode/
