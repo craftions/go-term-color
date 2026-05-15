@@ -1,0 +1,41 @@
+name: Test
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        go-version: ['1.26.1']
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Validate go.mod for replace directives
+        run: |
+          if grep -q "replace" go.mod; then
+            echo "Error: go.mod contains 'replace' directive. This is not allowed for release."
+            exit 1
+          fi
+        shell: bash
+
+      - name: Go Vet
+        run: go vet ./...
+
+      - name: Go Test
+        run: go test ./...
+
+      - name: Go Test with Race Detector
+        if: matrix.os != 'windows-latest'
+        run: go test -race ./...

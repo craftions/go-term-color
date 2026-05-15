@@ -41,34 +41,52 @@ func init() {
 // globalDetector is used for testing purposes
 var globalDetector TerminalDetector = defaultDetector{}
 
+// resolveMode allows tests to determine NoColor properly
+func resolveMode(env map[string]string, isTerminal bool, current Mode) Mode {
+	if current == ModeNever {
+		return ModeNever
+	}
+	if current == ModeAlways {
+		return ModeAlways
+	}
+	if val, ok := env["NO_COLOR"]; ok && val != "" {
+		return ModeNever
+	}
+	if val, ok := env["TERM"]; ok && val == "dumb" {
+		return ModeNever
+	}
+	if !isTerminal {
+		return ModeNever
+	}
+	return ModeAuto
+}
+
 // setupNoColor initializes the NoColor variable based on CurrentMode and environment.
 func setupNoColor() {
-	if CurrentMode == ModeNever {
+	env := map[string]string{
+		"NO_COLOR": os.Getenv("NO_COLOR"),
+		"TERM":     os.Getenv("TERM"),
+	}
+	isTerminal := globalDetector.IsTerminal(os.Stdout.Fd())
+	mode := resolveMode(env, isTerminal, CurrentMode)
+
+	if mode == ModeNever {
 		NoColor = true
-		colorDisabledReason = ReasonForced
+		if CurrentMode == ModeNever {
+			colorDisabledReason = ReasonForced
+		} else if env["NO_COLOR"] != "" {
+			colorDisabledReason = ReasonNoColorEnv
+		} else if env["TERM"] == "dumb" {
+			colorDisabledReason = ReasonDumbTerm
+		} else if !isTerminal {
+			colorDisabledReason = ReasonNotTerminal
+		}
 		return
 	}
-	if CurrentMode == ModeAlways {
+
+	if mode == ModeAlways {
 		NoColor = false
 		colorDisabledReason = ReasonForced
-		return
-	}
-
-	if os.Getenv("NO_COLOR") != "" {
-		NoColor = true
-		colorDisabledReason = ReasonNoColorEnv
-		return
-	}
-
-	if os.Getenv("TERM") == "dumb" {
-		NoColor = true
-		colorDisabledReason = ReasonDumbTerm
-		return
-	}
-
-	if !globalDetector.IsTerminal(os.Stdout.Fd()) {
-		NoColor = true
-		colorDisabledReason = ReasonNotTerminal
 		return
 	}
 

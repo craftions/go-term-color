@@ -2,6 +2,7 @@ package color
 
 import (
 	"bytes"
+	"errors"
 	"os"
 	"testing"
 )
@@ -153,5 +154,28 @@ func TestMetodosImpresionGlobales(t *testing.T) {
 	}
 	if !bytes.Contains(buf.Bytes(), []byte("\x1b[31mprintf 1\x1b[0m")) {
 		t.Errorf("Falta 'printf 1' en el output")
+	}
+}
+type errWriter struct{}
+
+func (errWriter) Write(_ []byte) (int, error) { return 0, errors.New("write failed") }
+
+func TestFprint_WritesToBuffer(t *testing.T) {
+	c := New(FgRed)
+	var b bytes.Buffer
+	_, err := c.Fprint(&b, "ok")
+	if err != nil {
+		t.Fatalf("unexpected err: %v", err)
+	}
+	if b.Len() == 0 {
+		t.Fatalf("expected output")
+	}
+}
+
+func TestFprint_PropagatesWriterError(t *testing.T) {
+	c := New(FgRed)
+	_, err := c.Fprint(errWriter{}, "x")
+	if err == nil {
+		t.Fatalf("expected writer error")
 	}
 }

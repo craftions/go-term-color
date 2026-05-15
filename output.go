@@ -8,12 +8,12 @@ import (
 
 // Sprint formats using the default formats for its operands and returns the resulting string.
 func (color *Color) Sprint(a ...any) string {
-	return color.render(fmt.Sprint(a...))
+	return color.apply(fmt.Sprint(a...))
 }
 
 // Sprintf formats according to a format specifier and returns the resulting string.
 func (color *Color) Sprintf(format string, a ...any) string {
-	return color.render(fmt.Sprintf(format, a...))
+	return color.apply(fmt.Sprintf(format, a...))
 }
 
 // Fprint formats using the default formats for its operands and writes to w.

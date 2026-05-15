@@ -12,5 +12,5 @@ type TerminalDetector interface {
 type defaultDetector struct{}
 
 func (d defaultDetector) IsTerminal(fd uintptr) bool {
-	return terminal.IsTerminal(fd)
+	return terminal.Check(fd).Terminal
 }

@@ -14,8 +14,8 @@ func (color *Color) sequence() string {
 	return strings.Join(seq, ";")
 }
 
-// render applies the ANSI sequences to the text, if colors are enabled.
-func (color *Color) render(text string) string {
+// apply applies the ANSI sequences to the text, if colors are enabled.
+func (color *Color) apply(text string) string {
 	if NoColor {
 		return text
 	}

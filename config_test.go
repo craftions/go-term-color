@@ -88,3 +88,18 @@ func TestSetupNoColorModes(t *testing.T) {
 		})
 	}
 }
+func TestResolveMode_NoColorEnvWins(t *testing.T) {
+	env := map[string]string{"NO_COLOR": "1", "TERM": "xterm"}
+	got := resolveMode(env, true, ModeAuto)
+	if got != ModeNever {
+		t.Fatalf("expected ModeNever, got %v", got)
+	}
+}
+
+func TestResolveMode_TermDumbDisablesColor(t *testing.T) {
+	env := map[string]string{"TERM": "dumb"}
+	got := resolveMode(env, true, ModeAuto)
+	if got != ModeNever {
+		t.Fatalf("expected ModeNever, got %v", got)
+	}
+}
