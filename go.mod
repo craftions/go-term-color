@@ -7,5 +7,3 @@ require (
 	github.com/craftions/go-term-check v0.0.0
 	golang.org/x/sys v0.43.0
 )
-
-replace github.com/craftions/go-term-check => ../go-term-check

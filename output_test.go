@@ -179,3 +179,20 @@ func TestFprint_PropagatesWriterError(t *testing.T) {
 		t.Fatalf("expected writer error")
 	}
 }
+
+func TestFprintf_PropagatesWriterError(t *testing.T) {
+	c := New(FgRed)
+	_, err := c.Fprintf(errWriter{}, "x=%d", 1)
+	if err == nil {
+		t.Fatal("expected writer error")
+	}
+}
+
+func TestFprintln_PropagatesWriterError(t *testing.T) {
+	c := New(FgRed)
+	_, err := c.Fprintln(errWriter{}, "x")
+	if err == nil {
+		t.Fatal("expected writer error")
+	}
+}
+

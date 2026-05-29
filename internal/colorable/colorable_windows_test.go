@@ -9,14 +9,6 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-func TestWrapColorable_ConsoleHandle(t *testing.T) {
-	_ = NewColorableStdout()
-}
-
-func TestColorable_Stderr(t *testing.T) {
-	_ = NewColorableStderr()
-}
-
 func TestColorable_PanicNil(t *testing.T) {
 	defer func() {
 		if r := recover(); r == nil {
@@ -35,11 +27,9 @@ func TestColorable_NotTerminal(t *testing.T) {
 }
 
 func TestColorable_IsTerminal(t *testing.T) {
-	oldIsTerminal := isTerminal
 	oldGetConsoleMode := getConsoleMode
 	oldSetConsoleMode := setConsoleMode
 	
-	isTerminal = func(fd uintptr) bool { return true }
 	getConsoleMode = func(handle windows.Handle, mode *uint32) error {
 		*mode = 0
 		return nil
@@ -49,10 +39,9 @@ func TestColorable_IsTerminal(t *testing.T) {
 	}
 	
 	defer func() {
-		isTerminal = oldIsTerminal
 		getConsoleMode = oldGetConsoleMode
 		setConsoleMode = oldSetConsoleMode
 	}()
 
-	_ = NewColorableStdout()
+	_ = NewColorable(os.Stdout)
 }

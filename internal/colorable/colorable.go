@@ -7,14 +7,10 @@ import (
 	"io"
 	"os"
 
-	"github.com/craftions/go-term-check/terminal"
 	"golang.org/x/sys/windows"
 )
 
 var (
-	isTerminal = func(fd uintptr) bool {
-		return terminal.Check(fd).Terminal
-	}
 	getConsoleMode = windows.GetConsoleMode
 	setConsoleMode = windows.SetConsoleMode
 )
@@ -27,9 +23,6 @@ func NewColorable(file *os.File) io.Writer {
 	}
 
 	fd := file.Fd()
-	if !isTerminal(fd) {
-		return file
-	}
 
 	// Verify and enable virtual terminal processing support
 	var mode uint32
@@ -40,14 +33,4 @@ func NewColorable(file *os.File) io.Writer {
 	}
 
 	return file
-}
-
-// NewColorableStdout returns new instance of writer which handles escape sequence for stdout.
-func NewColorableStdout() io.Writer {
-	return NewColorable(os.Stdout)
-}
-
-// NewColorableStderr returns new instance of writer which handles escape sequence for stderr.
-func NewColorableStderr() io.Writer {
-	return NewColorable(os.Stderr)
 }

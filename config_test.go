@@ -103,3 +103,28 @@ func TestResolveMode_TermDumbDisablesColor(t *testing.T) {
 		t.Fatalf("expected ModeNever, got %v", got)
 	}
 }
+
+func TestResolveModePriority(t *testing.T) {
+	cases := []struct {
+		name       string
+		env        map[string]string
+		isTerminal bool
+		current    Mode
+		want       Mode
+	}{
+		{"forced_never", map[string]string{}, true, ModeNever, ModeNever},
+		{"forced_always", map[string]string{"NO_COLOR": "1"}, false, ModeAlways, ModeAlways},
+		{"no_color", map[string]string{"NO_COLOR": "1"}, true, ModeAuto, ModeNever},
+		{"term_dumb", map[string]string{"TERM": "dumb"}, true, ModeAuto, ModeNever},
+		{"not_terminal", map[string]string{}, false, ModeAuto, ModeNever},
+		{"auto_terminal", map[string]string{}, true, ModeAuto, ModeAuto},
+	}
+
+	for _, tc := range cases {
+		got := resolveMode(tc.env, tc.isTerminal, tc.current)
+		if got != tc.want {
+			t.Fatalf("%s: want %s got %s", tc.name, tc.want, got)
+		}
+	}
+}
+
