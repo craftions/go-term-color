@@ -11,6 +11,8 @@ Unlike legacy libraries that bundle heavy OS-specific dependencies (such as `go-
 
 This clear separation of concerns ensures your application remains lean, predictable, and tightly adheres to Clean Architecture principles.
 
+![alt text](assets/image.png)
+
 ## 2. Project Structure
 
 The project has been physically refactored to enforce single-responsibility principles across the codebase:
