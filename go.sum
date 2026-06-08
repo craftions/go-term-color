@@ -1,0 +1,4 @@
+github.com/craftions/go-term-check v1.0.0 h1:fflKTDKSir1EZZN1cij9UUjfb2kTL/AJdfIcJtgRhxc=
+github.com/craftions/go-term-check v1.0.0/go.mod h1:p03hFfPi0sI6vIcK+FFkC4E3m2dWKCfYp5uQG/e1id4=
+golang.org/x/sys v0.43.0 h1:Rlag2XtaFTxp19wS8MXlJwTvoh8ArU6ezoyFsMyCTNI=
+golang.org/x/sys v0.43.0/go.mod h1:4GL1E5IUh+htKOUEOaiffhrAeqysfVGipDYzABqnCmw=

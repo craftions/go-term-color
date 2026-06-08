@@ -1,0 +1,14 @@
+# Dockerfile.linux
+FROM golang:1.21-alpine
+
+WORKDIR /app
+
+# Copiar archivos del modulo
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copiar el código fuente
+COPY . .
+
+# Ejecutar pruebas (verificando compatibilidad) e imprimir el ejemplo
+CMD go test -v ./... && cd example && go run main.go

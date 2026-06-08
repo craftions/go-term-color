@@ -1,0 +1,13 @@
+# Test coverage outputs
+*.out
+*.html
+coverage.out
+coverage/
+
+# IDEs and Editors
+.vscode/
+.idea/
+
+# OS specific
+.DS_Store
+Thumbs.db
